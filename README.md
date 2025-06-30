@@ -1,98 +1,127 @@
-# 🧠 FoodShare - API Backend (MERN)
+# FoodSaver Backend
 
-> Projet Back-End pour l'application **FoodShare**, conçu avec **Express.js** et **MongoDB**.  
-> Ce backend permet la gestion des utilisateurs, des offres alimentaires et des réservations.
+## Description
 
-------------------------------------------------------------------
+FoodShare Backend est l'API RESTful du projet FoodSaver, une application visant à réduire le gaspillage alimentaire en facilitant le partage d'offres alimentaires entre utilisateurs. Ce backend gère l'authentification, la gestion des offres et des réservations, ainsi que la sécurité des échanges.
 
-## 🚀 Présentation
+## Fonctionnalités principales
 
-FoodSaver est une application MERN (MongoDB, Express, React, Node.js) destinée à :
+- Authentification JWT (inscription, connexion, profil)
+- Création, consultation, modification et suppression d'offres alimentaires
+- Réservation d'offres, gestion des réservations
+- Sécurité des routes via middleware
 
-- Lutter contre le gaspillage alimentaire
-- Connecter des commerces et des utilisateurs pour partager des invendus encore consommables
-- Gérer les réservations et les échanges de produits
+## Technologies utilisées
 
-------------------------------------------------------------------
+- Node.js
+- Express.js
+- MongoDB & Mongoose
+- JWT (jsonwebtoken)
+- bcryptjs
+- multer (gestion des fichiers)
+- dotenv
 
+## Installation
 
+1. **Cloner le dépôt**
+   ```bash
+   git clone <url-du-repo>
+   cd backend
+   ```
+2. **Installer les dépendances**
+   ```bash
+   npm install
+   ```
+3. **Configurer les variables d'environnement**
+   - Créez un fichier `.env` à la racine avec :
+     ```env
+     MONGO_URI=<votre_url_mongodb>
+     JWT_SECRET=<votre_clé_secrète>
+     ```
 
+## Lancement du serveur
 
-## ⚙️ Installation
+- En mode développement (avec hot reload) :
+  ```bash
+  npm run dev
+  ```
+- En mode production :
+  ```bash
+  npm start
+  ```
 
-### 🔧 Prérequis
+Le serveur démarre par défaut sur le port 5000 (modifiable via la variable d'environnement `PORT`).
 
-- Node.js (v16 ou supérieur)
-- MongoDB (local ou cloud - ex : MongoDB Atlas)
-- npm
+## Structure du projet
 
-### 🛠 Étapes
+```
+backend/
+  config/           # Configuration (base de données)
+  controllers/      # Logique métier (auth, offres, réservations)
+  middleware/       # Middlewares (authentification)
+  models/           # Modèles Mongoose (User, Offer, Reservation)
+  routes/           # Définition des routes API
+  server.js         # Point d'entrée principal
+```
 
+## Modèles de données
 
-bash
-git clone https://github.com/FulAkou/back-end-projet-final.git
-cd back-end-projet-final
-npm install
+### Utilisateur (`User`)
 
-Crée un fichier .env :
-PORT=5000
-MONGO_URI=<votre_url_mongodb>
-JWT_SECRET=<votre_clé_secrète>
+- nom: String (requis)
+- email: String (requis, unique)
+- password: String (requis, hashé)
 
+### Offre (`Offer`)
 
-Lance le serveur :
-npm start
-🔌 API REST – Points d’accès
-🏠 Route racine
-Méthode	URL	Description
-GET	/	Vérifie que l’API tourne
+- titre: String (requis)
+- description: String (requis)
+- image: String (requis)
+- dateExpiration: Date (requis)
+- localisation: String (requis)
+- statut: String ("disponible" ou "reserve")
+- userId: Référence à l'utilisateur créateur
+- reservedBy: Référence à l'utilisateur réservant
 
-🔐 Authentification (/api/auth)
-Méthode	URL	Description
-POST	/login	Connexion utilisateur
-POST	/register	Inscription utilisateur
+### Réservation (`Reservation`)
 
-📦 Offres (/api/offers)
-Méthode	URL	Description
-GET	/api/offers	Liste toutes les offres
-POST	/api/offers	Ajouter une offre
-PUT	/api/offers/:id	Modifier une offre
-DELETE	/api/offers/:id	Supprimer une offre
+- userId: Référence à l'utilisateur
+- offerId: Référence à l'offre
+- nom: String (requis)
+- lieuLivraison: String (requis)
+- message: String (optionnel)
+- dateReservation: Date
+- statut: String ("en_cours", "complete", "annule")
 
-📅 Réservations (/api/reservations)
-Méthode	URL	Description
-GET	/api/reservations	Liste des réservations
-POST	/api/reservations	Créer une réservation
-PUT	/api/reservations/:id	Modifier une réservation
-DELETE	/api/reservations/:id	Annuler une réservation
+## Principales routes API
 
-🧪 Tests
-Lancer les tests (si disponibles) :
-npm test
+### Authentification
 
-🔒 Sécurité
-Authentification via JWT
+- `POST /api/auth/register` : Inscription
+- `POST /api/auth/login` : Connexion
+- `GET /api/auth/profile` : Profil utilisateur (protégé)
 
-Middleware cors et express.json() pour sécuriser les requêtes
+### Offres
 
-Protéger les routes privées avec des middlewares (authMiddleware, etc.)
+- `GET /api/offers` : Liste des offres
+- `POST /api/offers` : Créer une offre (protégé)
+- `GET /api/offers/me` : Mes offres (protégé)
+- `GET /api/offers/:id` : Détail d'une offre
+- `PUT /api/offers/:id` : Modifier une offre (protégé)
+- `DELETE /api/offers/:id` : Supprimer une offre (protégé)
 
-📘 À propos
-Ce projet constitue la base back-end d’un système complet de réduction du gaspillage alimentaire via mise en relation entre commerçants et consommateurs.
+### Réservations
 
-✅ À faire (suggestions)
-Ajouter des rôles (admin, commerce, client)
+- `POST /api/reservations` : Créer une réservation (protégé)
+- `GET /api/reservations/me` : Mes réservations (protégé)
+- `DELETE /api/reservations/:id` : Annuler une réservation (protégé)
 
-Valider les entrées avec express-validator
+## Sécurité
 
-Ajout d’un dashboard admin (statistiques, logs)
+- Authentification par JWT sur toutes les routes protégées
+- Validation des entrées via express-validator
+- Hash des mots de passe avec bcryptjs
 
-Déploiement sur Render / Vercel (avec frontend React)
+## Auteur / Contact
 
-📎 Liens utiles
-MongoDB Atlas
-Express.js Docs
-
-🧑‍💻 Auteur
-FulAkou
-GitHub : @FulAkou
+Pour toute question ou suggestion, contactez : [Votre Nom] - [votre.email@exemple.com]
